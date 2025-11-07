@@ -1,21 +1,39 @@
 import { useState } from 'react';
-import { UserPlus, LogIn, Code } from 'lucide-react';
+import { UserPlus, LogIn, Code, KeyRound, Mail } from 'lucide-react';
 import { authAPI } from '../services/api';
 
 const Auth = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
+
+    // Validate password confirmation for registration
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match!');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (!isLogin && formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
 
     try {
       let response;
@@ -43,10 +61,53 @@ const Auth = ({ onLogin }) => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const response = await authAPI.requestPasswordReset(formData.email);
+      setSuccess(response.data.message || 'Password reset instructions sent to your email!');
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setIsLogin(true);
+      }, 3000);
+    } catch (err) {
+      console.error('Password reset error:', err);
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        setError('Cannot connect to server. Please make sure the backend is running on http://localhost:5000');
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+    // Clear errors when user starts typing
+    if (error) setError('');
+    if (success) setSuccess('');
+  };
+
+  const toggleView = (view) => {
+    setIsLogin(view === 'login');
+    setShowForgotPassword(view === 'forgot');
+    setError('');
+    setSuccess('');
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     });
   };
 
@@ -68,31 +129,40 @@ const Auth = ({ onLogin }) => {
 
         {/* Auth Form */}
         <div className="card p-8">
-          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 px-4 rounded-md font-semibold transition-colors ${
-                isLogin
-                  ? 'bg-white text-blue-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 px-4 rounded-md font-semibold transition-colors ${
-                !isLogin
-                  ? 'bg-white text-blue-600 shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Register
-            </button>
-          </div>
+          {!showForgotPassword && (
+            <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => toggleView('login')}
+                className={`flex-1 py-2 px-4 rounded-md font-semibold transition-colors ${
+                  isLogin
+                    ? 'bg-white text-blue-600 shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => toggleView('register')}
+                className={`flex-1 py-2 px-4 rounded-md font-semibold transition-colors ${
+                  !isLogin
+                    ? 'bg-white text-blue-600 shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+          {showForgotPassword && (
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Reset Password</h2>
+              <p className="text-gray-600">Enter your email to receive reset instructions</p>
+            </div>
+          )}
+
+          <form onSubmit={showForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
+            {!isLogin && !showForgotPassword && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Full Name
@@ -124,24 +194,57 @@ const Auth = ({ onLogin }) => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                placeholder="Enter your password"
-              />
-            </div>
+            {!showForgotPassword && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                  placeholder="Enter your password (min 6 characters)"
+                />
+              </div>
+            )}
+
+            {!isLogin && !showForgotPassword && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required={!isLogin}
+                  minLength={6}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                  placeholder="Confirm your password"
+                />
+                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-red-600 text-sm mt-1">Passwords do not match</p>
+                )}
+                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                  <p className="text-green-600 text-sm mt-1">✓ Passwords match</p>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-lg">
                 {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-50 border-2 border-green-200 text-green-800 px-4 py-3 rounded-lg">
+                {success}
               </div>
             )}
 
@@ -154,19 +257,55 @@ const Auth = ({ onLogin }) => {
                 <span>Processing...</span>
               ) : (
                 <>
-                  {isLogin ? <LogIn size={20} /> : <UserPlus size={20} />}
-                  <span>{isLogin ? 'Login' : 'Create Account'}</span>
+                  {showForgotPassword ? (
+                    <>
+                      <KeyRound size={20} />
+                      <span>Send Reset Link</span>
+                    </>
+                  ) : isLogin ? (
+                    <>
+                      <LogIn size={20} />
+                      <span>Login</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={20} />
+                      <span>Create Account</span>
+                    </>
+                  )}
                 </>
               )}
             </button>
           </form>
 
+          {/* Forgot Password Link */}
+          {isLogin && !showForgotPassword && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => toggleView('forgot')}
+                className="text-sm text-blue-600 hover:underline font-semibold"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
+
           <div className="mt-6 text-center text-sm text-gray-600">
-            {isLogin ? (
+            {showForgotPassword ? (
+              <p>
+                Remember your password?{' '}
+                <button
+                  onClick={() => toggleView('login')}
+                  className="text-blue-600 font-semibold hover:underline"
+                >
+                  Back to Login
+                </button>
+              </p>
+            ) : isLogin ? (
               <p>
                 Don't have an account?{' '}
                 <button
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => toggleView('register')}
                   className="text-blue-600 font-semibold hover:underline"
                 >
                   Register now
@@ -176,7 +315,7 @@ const Auth = ({ onLogin }) => {
               <p>
                 Already have an account?{' '}
                 <button
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => toggleView('login')}
                   className="text-blue-600 font-semibold hover:underline"
                 >
                   Login here

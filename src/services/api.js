@@ -29,6 +29,12 @@ export const authAPI = {
   
   getProfile: () => 
     api.get('/user/profile'),
+  
+  requestPasswordReset: (email) =>
+    api.post('/password/request-reset', { email }),
+  
+  resetPassword: (token, newPassword) =>
+    api.post('/password/reset', { token, new_password: newPassword }),
 };
 
 // Progress API

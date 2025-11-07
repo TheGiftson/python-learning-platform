@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import io
 import sys
 import os
+import secrets
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -61,6 +62,14 @@ class Certificate(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     issued_at = db.Column(db.DateTime, default=datetime.utcnow)
     certificate_id = db.Column(db.String(50), unique=True)
+
+class PasswordReset(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
 
 # Create tables
 with app.app_context():
@@ -139,6 +148,102 @@ def login():
         }), 200
     except Exception as e:
         print(f"Login error: {str(e)}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+@app.route('/api/password/request-reset', methods=['POST'])
+def request_password_reset():
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('email'):
+            return jsonify({'error': 'Email is required'}), 400
+        
+        user = User.query.filter_by(email=data['email']).first()
+        
+        # For security, always return success even if email doesn't exist
+        # This prevents email enumeration attacks
+        if not user:
+            return jsonify({
+                'message': 'If an account exists with this email, you will receive password reset instructions.'
+            }), 200
+        
+        # Generate reset token
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = datetime.utcnow() + timedelta(hours=1)  # Token valid for 1 hour
+        
+        # Delete any existing unused tokens for this user
+        PasswordReset.query.filter_by(user_id=user.id, used=False).delete()
+        
+        # Create new reset token
+        password_reset = PasswordReset(
+            user_id=user.id,
+            token=reset_token,
+            expires_at=expires_at
+        )
+        
+        db.session.add(password_reset)
+        db.session.commit()
+        
+        # In a real application, you would send an email here
+        # For now, we'll return the token in the response (NOT SECURE FOR PRODUCTION)
+        print(f"Password reset token for {user.email}: {reset_token}")
+        
+        return jsonify({
+            'message': 'Password reset instructions have been sent to your email.',
+            'reset_token': reset_token,  # Remove this in production!
+            'note': 'In production, this token would be sent via email only.'
+        }), 200
+        
+    except Exception as e:
+        print(f"Password reset request error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+@app.route('/api/password/reset', methods=['POST'])
+def reset_password():
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('token') or not data.get('new_password'):
+            return jsonify({'error': 'Token and new password are required'}), 400
+        
+        # Validate password length
+        if len(data['new_password']) < 6:
+            return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+        
+        # Find the reset token
+        reset_request = PasswordReset.query.filter_by(
+            token=data['token'],
+            used=False
+        ).first()
+        
+        if not reset_request:
+            return jsonify({'error': 'Invalid or expired reset token'}), 400
+        
+        # Check if token has expired
+        if datetime.utcnow() > reset_request.expires_at:
+            return jsonify({'error': 'Reset token has expired'}), 400
+        
+        # Get the user
+        user = User.query.get(reset_request.user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Update password
+        user.set_password(data['new_password'])
+        
+        # Mark token as used
+        reset_request.used = True
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Password has been reset successfully. You can now login with your new password.'
+        }), 200
+        
+    except Exception as e:
+        print(f"Password reset error: {str(e)}")
+        db.session.rollback()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/user/profile', methods=['GET'])
