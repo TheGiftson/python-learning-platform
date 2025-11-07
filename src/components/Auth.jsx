@@ -30,7 +30,14 @@ const Auth = ({ onLogin }) => {
       localStorage.setItem('user', JSON.stringify(user));
       onLogin(user);
     } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred. Please try again.');
+      console.error('Auth error:', err);
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        setError('Cannot connect to server. Please make sure the backend is running on http://localhost:5000');
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

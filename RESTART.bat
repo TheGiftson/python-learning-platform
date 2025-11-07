@@ -19,7 +19,7 @@ echo.
 timeout /t 2 >nul
 
 echo Starting Backend Server...
-start "Backend Server" cmd /k "cd backend && python app.py"
+start "Backend Server" cmd /k "cd backend && venv\Scripts\activate && python run.py"
 
 echo Waiting for backend to initialize...
 timeout /t 5 >nul

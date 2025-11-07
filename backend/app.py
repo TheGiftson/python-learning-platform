@@ -67,56 +67,79 @@ with app.app_context():
     db.create_all()
 
 # Routes
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Backend server is running',
+        'database': 'connected'
+    }), 200
+
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    
-    if not data.get('name') or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Name, email and password are required'}), 400
-    
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already registered'}), 400
-    
-    user = User(name=data['name'], email=data['email'])
-    user.set_password(data['password'])
-    
-    db.session.add(user)
-    db.session.commit()
-    
-    access_token = create_access_token(identity=str(user.id))
-    
-    return jsonify({
-        'message': 'Registration successful',
-        'access_token': access_token,
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email
-        }
-    }), 201
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        if not data.get('name') or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Name, email and password are required'}), 400
+        
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'Email already registered'}), 400
+        
+        user = User(name=data['name'], email=data['email'])
+        user.set_password(data['password'])
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        access_token = create_access_token(identity=str(user.id))
+        
+        return jsonify({
+            'message': 'Registration successful',
+            'access_token': access_token,
+            'user': {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email
+            }
+        }), 201
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    
-    if not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Email and password are required'}), 400
-    
-    user = User.query.filter_by(email=data['email']).first()
-    
-    if not user or not user.check_password(data['password']):
-        return jsonify({'error': 'Invalid email or password'}), 401
-    
-    access_token = create_access_token(identity=str(user.id))
-    
-    return jsonify({
-        'access_token': access_token,
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email
-        }
-    }), 200
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        if not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        user = User.query.filter_by(email=data['email']).first()
+        
+        if not user or not user.check_password(data['password']):
+            return jsonify({'error': 'Invalid email or password'}), 401
+        
+        access_token = create_access_token(identity=str(user.id))
+        
+        return jsonify({
+            'access_token': access_token,
+            'user': {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email
+            }
+        }), 200
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/user/profile', methods=['GET'])
 @jwt_required()
