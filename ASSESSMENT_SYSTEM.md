@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Learn Python with Giftson** platform uses a comprehensive assessment system combining **theory knowledge** and **practical coding skills** to evaluate learners.
+The **Learn Python with TheGiftson** platform uses a comprehensive assessment system combining **theory knowledge** and **practical coding skills** to evaluate learners.
 
 ---
 

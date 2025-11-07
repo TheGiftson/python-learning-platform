@@ -1,4 +1,4 @@
-# Comprehensive Python Syllabus - Learn Python with Giftson
+# Comprehensive Python Syllabus - Learn Python with TheGiftson
 
 ## Complete Course Structure: Beginner to Professional
 

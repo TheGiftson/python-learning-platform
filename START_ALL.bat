@@ -1,6 +1,6 @@
 @echo off
 echo ================================================
-echo Learn Python with Giftson - Complete Platform
+echo Learn Python with TheGiftson - Complete Platform
 echo ================================================
 echo.
 echo This will start both Backend and Frontend servers
@@ -9,7 +9,7 @@ echo Starting Backend Server...
 echo.
 
 REM Start backend in a new window
-start "Backend - Learn Python with Giftson" cmd /k "cd backend && start-backend.bat"
+start "Backend - Learn Python with TheGiftson" cmd /k "cd backend && start-backend.bat"
 
 echo Waiting for backend to initialize...
 timeout /t 5 /nobreak >nul
@@ -19,7 +19,7 @@ echo Starting Frontend Server...
 echo.
 
 REM Start frontend in a new window  
-start "Frontend - Learn Python with Giftson" cmd /k "start.bat"
+start "Frontend - Learn Python with TheGiftson" cmd /k "start.bat"
 
 echo.
 echo ================================================

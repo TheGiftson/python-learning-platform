@@ -1,4 +1,4 @@
-# 🎓 Learning Path - Learn Python with Giftson
+# 🎓 Learning Path - Learn Python with TheGiftson
 
 ## 📋 Complete Learning Journey
 

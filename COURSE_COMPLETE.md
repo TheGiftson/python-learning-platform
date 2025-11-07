@@ -223,4 +223,4 @@ The complete Python course is now live with:
 
 ---
 
-**Learn Python with Giftson - Your Complete Python Journey**
+**Learn Python with TheGiftson - Your Complete Python Journey**

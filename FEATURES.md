@@ -1,4 +1,4 @@
-# 🌟 Learn Python with Giftson - Complete Feature List
+# 🌟 Learn Python with TheGiftson - Complete Feature List
 
 ## 🎓 Complete Learning Platform
 

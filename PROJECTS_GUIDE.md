@@ -1,4 +1,4 @@
-# 🎯 Projects Guide - Learn Python with Giftson
+# 🎯 Projects Guide - Learn Python with TheGiftson
 
 ## Overview
 

@@ -23,7 +23,7 @@ The JWT token system had a mismatch - backend was creating tokens with integer I
 ### Test It
 Try this code:
 ```python
-print("Hello from Learn Python with Giftson!")
+print("Hello from Learn Python with TheGiftson!")
 for i in range(5):
     print(f"Number: {i}")
 ```

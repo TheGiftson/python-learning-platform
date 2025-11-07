@@ -1,4 +1,4 @@
-# 🚀 Setup Guide - Learn Python with Giftson
+# 🚀 Setup Guide - Learn Python with TheGiftson
 
 Complete step-by-step guide to get the platform running on your machine.
 

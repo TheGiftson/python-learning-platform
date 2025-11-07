@@ -52,7 +52,7 @@ const Auth = ({ onLogin }) => {
             <Code className="text-blue-600" size={48} />
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">
-            Learn Python with Giftson
+            Learn Python with TheGiftson
           </h1>
           <p className="text-white/90 text-lg">
             Master Python from Beginner to Pro

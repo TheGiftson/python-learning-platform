@@ -1,4 +1,4 @@
-# Learn Python with Giftson 🐍
+# Learn Python with TheGiftson 🐍
 
 A complete, full-stack Python learning platform that takes you from beginner to professional level. Features user accounts, progress tracking, real Python code execution, and certificate generation!
 
@@ -322,7 +322,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 👨‍🏫 About
 
-**Learn Python with Giftson** is a comprehensive, full-stack learning platform designed to take complete beginners to professional Python programmers through structured, interactive lessons and hands-on projects.
+**Learn Python with TheGiftson** is a comprehensive, full-stack learning platform designed to take complete beginners to professional Python programmers through structured, interactive lessons and hands-on projects.
 
 ---
 
