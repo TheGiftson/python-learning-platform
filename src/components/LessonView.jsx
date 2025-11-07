@@ -123,36 +123,95 @@ const LessonView = ({ lesson, onBack, user, onProgressUpdate }) => {
               <h2 className="text-2xl font-bold text-blue-900">{currentTopic.title}</h2>
             </div>
             
-            {/* Content with better formatting */}
+            {/* Content with enhanced colors and formatting */}
             <div className="prose prose-lg max-w-none">
-              <div className="text-gray-800 leading-relaxed space-y-4">
+              <div className="leading-relaxed space-y-4">
                 {currentTopic.content.split('\n\n').map((paragraph, idx) => {
-                  // Check if it's a code block
+                  // Code blocks with syntax highlighting style
                   if (paragraph.includes('```')) {
                     const codeMatch = paragraph.match(/```(\w+)?\n([\s\S]*?)```/);
                     if (codeMatch) {
                       return (
-                        <div key={idx} className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                          <pre className="whitespace-pre-wrap">{codeMatch[2]}</pre>
+                        <div key={idx} className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 rounded-lg shadow-lg border-l-4 border-green-500">
+                          <div className="text-xs text-green-300 mb-2 font-bold uppercase tracking-wide">💻 Code Example:</div>
+                          <pre className="text-green-400 font-mono text-sm overflow-x-auto whitespace-pre-wrap">{codeMatch[2]}</pre>
                         </div>
                       );
                     }
                   }
                   
-                  // Check if it's a heading
+                  // Main headings - Blue gradient background
                   if (paragraph.startsWith('# ')) {
-                    return <h3 key={idx} className="text-2xl font-bold text-blue-800 mt-6 mb-3">{paragraph.substring(2)}</h3>;
-                  }
-                  if (paragraph.startsWith('## ')) {
-                    return <h4 key={idx} className="text-xl font-semibold text-blue-700 mt-4 mb-2">{paragraph.substring(3)}</h4>;
-                  }
-                  if (paragraph.startsWith('### ')) {
-                    return <h5 key={idx} className="text-lg font-semibold text-blue-600 mt-3 mb-2">{paragraph.substring(4)}</h5>;
+                    return (
+                      <div key={idx} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-lg mt-6 mb-4 shadow-md">
+                        <h3 className="text-2xl font-bold flex items-center">
+                          <span className="mr-3">📘</span>
+                          {paragraph.substring(2)}
+                        </h3>
+                      </div>
+                    );
                   }
                   
-                  // Regular paragraph
+                  // Subheadings - Blue border with icon
+                  if (paragraph.startsWith('## ')) {
+                    return (
+                      <div key={idx} className="border-l-4 border-blue-500 bg-blue-50 pl-4 py-2 mt-5 mb-3 rounded-r">
+                        <h4 className="text-xl font-bold text-blue-700 flex items-center">
+                          <span className="mr-2">▸</span>
+                          {paragraph.substring(3)}
+                        </h4>
+                      </div>
+                    );
+                  }
+                  
+                  // Small headings - Purple with arrow
+                  if (paragraph.startsWith('### ')) {
+                    return (
+                      <h5 key={idx} className="text-lg font-semibold text-purple-600 mt-4 mb-2 flex items-center">
+                        <span className="text-purple-400 mr-2 text-xl">→</span>
+                        {paragraph.substring(4)}
+                      </h5>
+                    );
+                  }
+                  
+                  // List items - Colored bullets
+                  if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+                    return (
+                      <div key={idx} className="flex items-start space-x-3 ml-4 bg-gray-50 p-3 rounded-lg">
+                        <span className="text-blue-500 font-bold text-lg mt-0.5">●</span>
+                        <span className="text-gray-800 flex-1 leading-relaxed">{paragraph.substring(2)}</span>
+                      </div>
+                    );
+                  }
+                  
+                  // Numbered lists - Colored numbers
+                  const numberedMatch = paragraph.match(/^(\d+)\.\s(.*)/);
+                  if (numberedMatch) {
+                    return (
+                      <div key={idx} className="flex items-start space-x-3 ml-4 bg-purple-50 p-3 rounded-lg">
+                        <span className="bg-purple-600 text-white font-bold text-sm rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
+                          {numberedMatch[1]}
+                        </span>
+                        <span className="text-gray-800 flex-1 leading-relaxed">{numberedMatch[2]}</span>
+                      </div>
+                    );
+                  }
+                  
+                  // Important notes (starts with Note: or Important:)
+                  if (paragraph.startsWith('Note:') || paragraph.startsWith('Important:')) {
+                    return (
+                      <div key={idx} className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r shadow-sm">
+                        <p className="text-yellow-900 font-medium flex items-start">
+                          <span className="mr-2 text-xl">💡</span>
+                          <span>{paragraph}</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  // Regular paragraphs - Enhanced readability
                   return (
-                    <p key={idx} className="text-gray-700 leading-relaxed">
+                    <p key={idx} className="text-gray-800 leading-relaxed text-base bg-white p-3 rounded border-l-2 border-gray-200">
                       {paragraph}
                     </p>
                   );
@@ -171,11 +230,16 @@ const LessonView = ({ lesson, onBack, user, onProgressUpdate }) => {
               <span>{showHints ? 'Hide Hints' : 'Show Hints'}</span>
             </button>
             {showHints && (
-              <ul className="list-disc list-inside space-y-1 text-yellow-900">
+              <div className="space-y-3 mt-4">
                 {currentTopic.hints.map((hint, index) => (
-                  <li key={index}>{hint}</li>
+                  <div key={index} className="flex items-start space-x-3 bg-white p-3 rounded-lg shadow-sm border-l-4 border-amber-500">
+                    <span className="bg-amber-500 text-white font-bold text-sm rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      {index + 1}
+                    </span>
+                    <span className="text-amber-900 flex-1 leading-relaxed">{hint}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </div>
